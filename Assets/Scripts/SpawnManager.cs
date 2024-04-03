@@ -8,12 +8,17 @@ public class SpawnManager : MonoBehaviour
     [SerializeField] private GameObject obstaclePrefab;
     // where to spawn
     [SerializeField] private Transform spawnOrigin;
+    [SerializeField] private Transform obstaclesParent;
 
     // rate of spawning
     [SerializeField] private float spawnInterval;
+    [SerializeField] private float spawnOffset;
 
     // speed of obstacles
     [SerializeField] private float obstacleSpeed;
+
+    // 
+    [SerializeField] private float leftmostEdge;
 
     private float timer;
 
@@ -23,6 +28,8 @@ public class SpawnManager : MonoBehaviour
     {
         timer = spawnInterval;
 
+        SpawnObstacle();
+
     }
 
     // Update is called once per frame
@@ -31,10 +38,12 @@ public class SpawnManager : MonoBehaviour
         if (ShouldSpawnObstacle())
         {
             Debug.Log("timer ended. please spawn an obstacle.");
-            // SpawnObstacle();
+            SpawnObstacle();
         }
 
         MoveObstacles();
+
+        DestroyObstacles();
 
     }
 
@@ -54,5 +63,28 @@ public class SpawnManager : MonoBehaviour
     private void MoveObstacles()
     {
         // movement code
+        foreach (Transform obstacle in obstaclesParent)
+        {
+            // code for each obstacle
+            obstacle.position += Vector3.left * Time.deltaTime * obstacleSpeed;
+        }
+    }
+
+    private void SpawnObstacle()
+    {
+        Vector2 randPos = spawnOrigin.position + new Vector3(0, Random.Range(-spawnOffset, spawnOffset), 0);
+
+        Instantiate(obstaclePrefab, randPos, spawnOrigin.rotation, obstaclesParent);
+    }
+
+    private void DestroyObstacles()
+    {
+        foreach (Transform obstacle in obstaclesParent)
+        {
+            if (obstacle.position.x <= leftmostEdge)
+            {
+                Destroy(obstacle.gameObject);
+            }
+        }
     }
 }

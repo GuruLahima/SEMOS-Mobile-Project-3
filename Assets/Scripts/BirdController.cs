@@ -1,11 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class BirdController : MonoBehaviour
 {
     [SerializeField] private float jumpSpeed;
+    [SerializeField] private GameObject gameOverScreen;
+
+    public UnityEvent OnHit;
+    public UnityEvent OnPoint;
+    public UnityEvent OnJump;
 
     private Rigidbody2D rb;
 
@@ -13,6 +20,9 @@ public class BirdController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        // unpause game
+        Time.timeScale = 1;
     }
 
     // Update is called once per frame
@@ -27,9 +37,24 @@ public class BirdController : MonoBehaviour
 
     }
 
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+
+        // pause game
+        Time.timeScale = 0;
+
+        // show game over screen
+        if (gameOverScreen != null)
+            gameOverScreen.SetActive(true);
+
+
+        // show points
+
+    }
+
     private bool GetJumpInput()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
         {
             return true;
         }
@@ -50,5 +75,13 @@ public class BirdController : MonoBehaviour
 
         // jump
         rb.AddForce(jumpVector, ForceMode2D.Impulse);
+
+        // trigger event
+        OnJump?.Invoke();
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(0);
     }
 }
