@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class BirdController : MonoBehaviour
 {
     [SerializeField] private float jumpSpeed;
     [SerializeField] private GameObject gameOverScreen;
+    [SerializeField] private TextMeshProUGUI currentPointsText;
+    [SerializeField] private TextMeshProUGUI highScoreText;
 
     public UnityEvent OnHit;
     public UnityEvent OnPoint;
@@ -16,10 +19,19 @@ public class BirdController : MonoBehaviour
 
     private Rigidbody2D rb;
 
+    private int currentPoints;
+    private int highScorePoints;
+
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        currentPoints = 0;
+        currentPointsText.text = currentPoints.ToString();
+
+        highScorePoints = PlayerPrefs.GetInt("Highscore");
+        highScoreText.text = highScorePoints.ToString();
 
         // unpause game
         Time.timeScale = 1;
@@ -31,7 +43,7 @@ public class BirdController : MonoBehaviour
 
         if (GetJumpInput())
         {
-            Debug.Log("Player pressed the jump button");
+            // Debug.Log("Player pressed the jump button");
             Jump();
         }
 
@@ -47,9 +59,29 @@ public class BirdController : MonoBehaviour
         if (gameOverScreen != null)
             gameOverScreen.SetActive(true);
 
+        // trigger event
+        OnHit?.Invoke();
 
         // show points
 
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        currentPoints++;
+
+        currentPointsText.text = currentPoints.ToString();
+
+        OnPoint?.Invoke();
+
+        if (currentPoints > highScorePoints)
+        {
+            PlayerPrefs.SetInt("Highscore", currentPoints);
+            highScorePoints = currentPoints;
+            highScoreText.text = highScorePoints.ToString();
+        }
+
+        Debug.Log("current points: " + currentPoints);
     }
 
     private bool GetJumpInput()
